@@ -1,0 +1,111 @@
+.container.mt-5
+  .row.justify-content-center
+    .col-md-8
+      h1.text-center.mb-4 Weather Search
+
+      = form_with url: '', method: :get, local: true, class: "mb-4" do |f|
+        .input-group
+          = f.text_field :city, class: "form-control js-search-input", placeholder: "Enter city name...", value: params[:city]
+          .input-group-append
+            = f.submit "Search", class: "btn btn-primary"
+      .result
+        - if @weather
+          .card.mt-4
+            .card-header.bg-primary.text-white
+              h4.mb-0 = "#{@weather['name']}, #{@weather['sys']['country']}"
+
+            .card-body
+              .row
+                .col-md-6
+                  h5 Current Weather
+                  p
+                    img src="https://openweathermap.org/img/wn/#{@weather['weather'][0]['icon']}@2x.png" alt="Weather icon"
+                    = @weather['weather'][0]['description'].capitalize
+                  p Temperature: = @weather['main']['temp'] °C
+                  p Feels like: = @weather['main']['feels_like'] °C
+
+                .col-md-6
+                  h5 Details
+                  p Humidity: = @weather['main']['humidity'] %
+                  p Pressure: = @weather['main']['pressure'] hPa
+                  p Wind Speed: = @weather['wind']['speed'] m/s
+                  p Cloudiness: = @weather['clouds']['all'] %
+
+              p.text-muted.mt-3
+                | Last updated:
+                = Time.at(@weather['dt']).strftime('%Y-%m-%d %H:%M:%S')
+
+        - elsif @error
+          .alert.alert-danger.mt-4 = @error
+
+javascript:
+  function debounce(func, timeout = 500) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        func.apply(this, args);
+      }, timeout);
+    };
+  }
+
+  function updateWeatherUI(res) {
+    const resultContainer = $(".result");
+    if (res && res.cod == 200) {
+      console.log(res)
+      resultContainer.html(`
+        <div class="card mt-4">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">${res.name}, ${res.sys.country}</h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <h5>Current Weather</h5>
+                <p>
+                  <img src="https://openweathermap.org/img/wn/${res.weather[0].icon}@2x.png" alt="Weather icon">
+                  ${res.weather[0].description}
+                </p>
+                <p>Temperature: ${res.main.temp}°C</p>
+                <p>Feels like: ${res.main.feels_like}°C</p>
+              </div>
+              <div class="col-md-6">
+                <h5>Details</h5>
+                <p>Humidity: ${res.main.humidity}%</p>
+                <p>Pressure: ${res.main.pressure} hPa</p>
+                <p>Wind Speed: ${res.wind.speed} m/s</p>
+                <p>Cloudiness: ${res.clouds.all}%</p>
+              </div>
+            </div>
+            <p class="text-muted mt-3">Last updated: ${new Date(res.dt * 1000).toLocaleString()}</p>
+          </div>
+        </div>
+      `);
+    } else {
+      resultContainer.html(`<div class="alert alert-danger mt-4">Error</div>`);
+    }
+  }
+
+  const processChange = debounce((keyword) => {
+    if (keyword.trim() === "") return;
+
+    $.ajax({
+      url: '/weather',
+      type: 'GET',
+      dataType: 'json',
+      data: { city: keyword },
+      success: updateWeatherUI,
+      error: function () {
+        console.log("error!!!!")
+        $(".result").html('<div class="alert alert-danger mt-4">Error fetching data. Please try again.</div>');
+      },
+    });
+  });
+
+  $(document).ready(function () {
+    const searchInput = $(".js-search-input");
+    searchInput.on("input", function () {
+      const keyword = searchInput.val();
+      processChange(keyword);
+    });
+  });
