@@ -28,5 +28,5 @@ Things you may want to cover:
 Change user owner files
 
 ```
-sudo chown -R $USER:$USER ./codecamp1
+sudo chown -R $USER:$USER ./codecamp3
 ```

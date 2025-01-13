@@ -3,11 +3,11 @@
     .col-md-8
       h1.text-center.mb-4 Weather Search
 
-      = form_with url: '', method: :get, local: true, class: "mb-4" do |f|
+      = form_with url: '', method: :get, local: true, class: "mb-4", id: "form-search" do |f|
         .input-group
           = f.text_field :city, class: "form-control js-search-input", placeholder: "Enter city name...", value: params[:city]
           .input-group-append
-            = f.submit "Search", class: "btn btn-primary"
+            = f.submit "Search", class: "btn btn-primary", id: "btn-submit"
       .result
         - if @weather
           .card.mt-4
@@ -105,6 +105,17 @@ javascript:
   $(document).ready(function () {
     const searchInput = $(".js-search-input");
     searchInput.on("input", function () {
+      const keyword = searchInput.val();
+      processChange(keyword);
+    });
+  });
+
+  $(document).ready(function () {
+
+    $("#form-search").on("submit", function (event) {
+      console.log("submit")
+      event.preventDefault();
+      const searchInput = $(".js-search-input");
       const keyword = searchInput.val();
       processChange(keyword);
     });
