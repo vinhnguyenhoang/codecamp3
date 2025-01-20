@@ -1,5 +1,6 @@
 source "https://rubygems.org"
 
+gem "devise"
 gem "faraday"
 gem "dotenv-rails", groups: [:development, :test]
 gem "pry"
